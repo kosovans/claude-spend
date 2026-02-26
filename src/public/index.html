@@ -229,72 +229,6 @@
   }
 
   /* Token explainer */
-  .token-explainer {
-    font-size: 13px; color: var(--text-tertiary); font-weight: 500;
-    text-align: center; padding: 10px 20px; margin: -16px 0 8px;
-    line-height: 1.5;
-  }
-  .pricing-toggle {
-    background: none; border: none; color: var(--indigo); font-weight: 600;
-    font-size: 13px; cursor: pointer; font-family: var(--font);
-    padding: 2px 0; margin-left: 4px;
-    border-bottom: 1px dashed rgba(99,102,241,0.4);
-    transition: border-color 0.2s;
-  }
-  .pricing-toggle:hover { border-bottom-color: var(--indigo); }
-  #pricingBreakdown.open .pricing-toggle svg { transform: rotate(180deg); }
-
-  /* Pricing breakdown panel */
-  .pricing-breakdown {
-    max-height: 0; overflow: hidden; transition: max-height 0.35s ease, margin 0.35s ease;
-    margin: 0 0 20px;
-  }
-  .pricing-breakdown.open { max-height: 500px; margin-bottom: 28px; }
-  .pricing-breakdown-inner {
-    background: var(--white); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); padding: 20px 24px;
-    box-shadow: var(--shadow-sm);
-  }
-  .pricing-header-row {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
-  }
-  .pricing-heading {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 14px; font-weight: 700; color: var(--text);
-  }
-  .pricing-source-link {
-    font-size: 12px; font-weight: 600; color: var(--indigo);
-    text-decoration: none; transition: opacity 0.15s;
-  }
-  .pricing-source-link:hover { opacity: 0.8; text-decoration: underline; }
-  .pricing-note {
-    font-size: 13px; color: var(--text-secondary); line-height: 1.65;
-    margin-bottom: 16px;
-  }
-  .pricing-note strong { color: var(--text); font-weight: 600; }
-  .pricing-note em { font-style: italic; }
-  .pricing-table {
-    width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 12px;
-  }
-  .pricing-table th {
-    text-align: right; padding: 8px 12px; font-size: 11px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary);
-    border-bottom: 1px solid var(--border); background: #FAFBFC;
-  }
-  .pricing-table th:first-child { text-align: left; }
-  .pricing-table td {
-    text-align: right; padding: 8px 12px; border-bottom: 1px solid var(--border);
-    font-family: var(--mono); font-weight: 600; font-size: 13px; color: var(--text);
-  }
-  .pricing-table td:first-child { text-align: left; font-family: var(--font); font-weight: 500; }
-  .pricing-table .model-cell { padding: 6px 12px; }
-  .pricing-table tbody tr:last-child td { border-bottom: none; }
-  .pricing-table tbody tr:hover td { background: #FAFBFF; }
-  .pricing-footnote {
-    font-size: 12px; color: var(--text-tertiary); line-height: 1.6; margin: 0;
-  }
-
   /* ---- SECTION HEADINGS ---- */
   .section-header {
     display: flex; align-items: center; gap: 10px;
@@ -418,10 +352,6 @@
     font-size: 16px; font-weight: 700; font-family: var(--mono);
     letter-spacing: -0.5px;
   }
-  .prompt-tokens .cost-value {
-    font-size: 14px; font-weight: 700; font-family: var(--mono);
-    letter-spacing: -0.3px; color: var(--indigo);
-  }
   .prompt-tokens .sub { font-size: 11px; color: var(--text-tertiary); font-weight: 500; margin-top: 2px; }
 
   /* ---- PROJECTS ---- */
@@ -514,11 +444,6 @@
     font-family: var(--mono); font-size: 13px; font-weight: 600;
     text-align: right; white-space: nowrap; letter-spacing: -0.3px;
   }
-  .cost-cell {
-    font-family: var(--mono); font-size: 13px; font-weight: 700;
-    text-align: right; white-space: nowrap; letter-spacing: -0.3px;
-    color: var(--indigo);
-  }
   .model-badge {
     display: inline-flex; align-items: center; gap: 5px;
     padding: 3px 10px; border-radius: 20px;
@@ -588,17 +513,6 @@
   }
   .drilldown-close:hover { background: #EEF2FF; color: var(--indigo); }
 
-  /* Cost curve chart in drilldown */
-  .cost-curve-card {
-    background: var(--bg); border-radius: var(--radius-sm);
-    padding: 20px; margin-bottom: 20px;
-    border: 1px solid var(--border);
-  }
-  .cost-curve-card h4 {
-    font-size: 12px; font-weight: 700; color: var(--text-tertiary);
-    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;
-  }
-
   .query-list { display: flex; flex-direction: column; gap: 8px; }
   .query-item {
     display: grid; grid-template-columns: 36px 1fr auto;
@@ -617,7 +531,6 @@
   .query-prompt.no-prompt { color: var(--text-tertiary); font-style: italic; font-weight: 400; }
   .query-tokens-col { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; white-space: nowrap; }
   .query-tokens-col .total { font-family: var(--mono); font-size: 14px; font-weight: 700; }
-  .query-tokens-col .cost-tag { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--indigo); }
   .query-tokens-col .detail { font-size: 12px; color: var(--text-tertiary); font-weight: 500; }
 
   /* ---- FOOTER ---- */
@@ -691,41 +604,6 @@
 
   <!-- Stats -->
   <div class="stats-row" id="statsRow"></div>
-  <div id="tokenExplainer" class="token-explainer animate delay-2">
-    Cost is estimated from Anthropic's published API pricing -- not what you pay on a subscription.
-    <button class="pricing-toggle" onclick="document.getElementById('pricingBreakdown').classList.toggle('open')">How we calculate cost <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="vertical-align:middle;margin-left:2px;transition:transform 0.2s"><path d="M2.5 3.75L5 6.25L7.5 3.75"/></svg></button>
-  </div>
-  <div id="pricingBreakdown" class="pricing-breakdown animate delay-2">
-    <div class="pricing-breakdown-inner">
-      <div class="pricing-header-row">
-        <div class="pricing-heading">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--indigo)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-          <span>Pricing transparency</span>
-        </div>
-        <a href="https://docs.anthropic.com/en/docs/about-claude/pricing" target="_blank" rel="noopener" class="pricing-source-link">Anthropic's official pricing page &rarr;</a>
-      </div>
-      <p class="pricing-note"><strong>This is not your bill.</strong> You pay your monthly subscription ($20 for Pro, $30 for Team, etc.) and that's it. So why show dollar amounts? Because "$12" is easier to understand than "4.2 million tokens." It helps you see which conversations are expensive and which are cheap. We calculate these numbers using the prices Anthropic charges developers who pay per token (instead of a subscription). These are listed below.</p>
-      <table class="pricing-table">
-        <thead>
-          <tr>
-            <th>Model</th>
-            <th>Input</th>
-            <th>Cache write</th>
-            <th>Cache read</th>
-            <th>Output</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td class="model-cell"><span class="model-badge model-opus" style="font-size:11px"><span class="model-dot"></span>Opus 4.5 / 4.6</span></td><td>$5</td><td>$6.25</td><td>$0.50</td><td>$25</td></tr>
-          <tr><td class="model-cell"><span class="model-badge model-opus" style="font-size:11px"><span class="model-dot"></span>Opus 4.0 / 4.1</span></td><td>$15</td><td>$18.75</td><td>$1.50</td><td>$75</td></tr>
-          <tr><td class="model-cell"><span class="model-badge model-sonnet" style="font-size:11px"><span class="model-dot"></span>Sonnet (all)</span></td><td>$3</td><td>$3.75</td><td>$0.30</td><td>$15</td></tr>
-          <tr><td class="model-cell"><span class="model-badge model-haiku" style="font-size:11px"><span class="model-dot"></span>Haiku 4.5</span></td><td>$1</td><td>$1.25</td><td>$0.10</td><td>$5</td></tr>
-          <tr><td class="model-cell"><span class="model-badge model-haiku" style="font-size:11px"><span class="model-dot"></span>Haiku 3.5</span></td><td>$0.80</td><td>$1.00</td><td>$0.08</td><td>$4</td></tr>
-        </tbody>
-      </table>
-      <p class="pricing-footnote">All prices per million tokens (MTok). Cache write = 1.25x input price (5-min TTL). Cache read = 0.1x input price. When Claude re-reads unchanged context from a previous turn, that's a cache read -- 10x cheaper than fresh input.</p>
-    </div>
-  </div>
 
   <!-- Insights -->
   <div id="insightsSection" class="insights-section" style="display:none">
@@ -800,16 +678,6 @@
       </div>
       <button class="drilldown-close" onclick="closeDrilldown()">&times;</button>
     </div>
-    <div id="costCurveContainer" style="display:none">
-      <div class="cost-curve-card">
-        <h4>Cost per Turn</h4>
-        <canvas id="costCurveChart"></canvas>
-        <div class="legend" style="margin-top:12px">
-          <div class="legend-item"><div class="legend-dot" style="background:var(--rose)"></div> Cost per turn</div>
-          <div class="legend-item"><div class="legend-dot" style="background:rgba(99,102,241,0.2)"></div> Cumulative cost</div>
-        </div>
-      </div>
-    </div>
     <div id="queryList" class="query-list"></div>
   </div>
 
@@ -836,7 +704,6 @@
             <th data-sort="total" style="text-align:right" class="sorted has-tooltip has-tooltip-below">Total tokens<div class="tooltip">The total number of tokens used in this conversation. Higher means more expensive. Long conversations cost more because Claude re-reads everything each turn.</div></th>
             <th data-sort="input" style="text-align:right" class="has-tooltip has-tooltip-below">Read<div class="tooltip">Tokens Claude read: your messages, the conversation history, files, and system context. This grows with each message because the full history gets re-sent.</div></th>
             <th data-sort="output" style="text-align:right" class="has-tooltip has-tooltip-below">Written<div class="tooltip">Tokens Claude wrote back: responses, code, explanations. Usually a small fraction of the total.</div></th>
-            <th data-sort="cost" style="text-align:right" class="has-tooltip has-tooltip-below">Cost<div class="tooltip">Estimated API-equivalent cost based on Anthropic's published pricing. Claude Code subscription pricing differs -- this shows what it would cost at API rates.</div></th>
           </tr>
         </thead>
         <tbody id="sessionsBody"></tbody>
@@ -862,14 +729,6 @@ function fmt(n) {
   return n.toLocaleString();
 }
 function fmtFull(n) { return n.toLocaleString(); }
-function fmtCost(c) {
-  if (c >= 100) return '$' + c.toFixed(0);
-  if (c >= 10) return '$' + c.toFixed(1);
-  if (c >= 1) return '$' + c.toFixed(2);
-  if (c >= 0.01) return '$' + c.toFixed(2);
-  if (c > 0) return '$' + c.toFixed(3);
-  return '$0.00';
-}
 
 function modelClass(m) {
   if (m.includes('opus')) return 'model-opus';
@@ -986,18 +845,17 @@ function renderStats() {
   document.getElementById('dateRange').textContent = range;
 
   const cacheTotal = (t.totalCacheCreationTokens || 0) + (t.totalCacheReadTokens || 0);
-  const avgCostPerMsg = t.totalQueries > 0 ? (t.totalCost || 0) / t.totalQueries : 0;
+  const avgTokensPerMsg = t.totalQueries > 0 ? Math.round(t.totalTokens / t.totalQueries) : 0;
 
   const cards = [
     { label: 'Total Usage', value: fmt(t.totalTokens), sub: `${fmt(t.totalInputTokens)} input + ${fmt(cacheTotal)} cached + ${fmt(t.totalOutputTokens)} output`,
       tip: 'The total number of tokens used across all your conversations. Input = fresh context sent at full price. Cached = context reused from previous turns at 10x lower cost. Output = what Claude wrote back.' },
     { label: 'Conversations', value: fmtFull(t.totalSessions), sub: `Each one used ~${fmt(t.avgTokensPerSession)} tokens on average`,
       tip: 'Each time you start Claude Code and begin chatting, that counts as one conversation. A new conversation starts fresh with no prior context.' },
-    { label: 'Messages Sent', value: fmtFull(t.totalQueries), sub: `Each message cost ~${fmtCost(avgCostPerMsg)} on average`,
+    { label: 'Messages Sent', value: fmtFull(t.totalQueries), sub: `Each message used ~${fmt(avgTokensPerMsg)} tokens on average`,
       tip: 'Every time you hit Enter and send something to Claude, that is one message. This includes follow-up tool calls Claude makes automatically behind the scenes.' },
-    { label: 'Estimated Cost', value: fmtCost(t.totalCost || 0),
-      sub: t.totalSaved > 0 ? `You saved ~${fmtCost(t.totalSaved)} from caching (${((t.cacheHitRate || 0) * 100).toFixed(0)}% cache hit rate)` : `Based on API-equivalent pricing`,
-      tip: 'Estimated cost at Anthropic\'s published API rates (docs.anthropic.com/en/docs/about-claude/pricing). If you pay a flat subscription, your actual cost is your subscription fee. Click "How we calculate cost" above for the full pricing table.' },
+    { label: 'Cache Hit Rate', value: `${((t.cacheHitRate || 0) * 100).toFixed(0)}%`, sub: `${fmt(t.totalCacheReadTokens || 0)} tokens served from cache`,
+      tip: 'The percentage of input tokens that were served from cache instead of being processed fresh. Higher is better -- cached tokens are 10x cheaper and help you stay under rate limits.' },
   ];
 
   document.getElementById('statsRow').innerHTML = cards.map((c, i) => `
@@ -1303,7 +1161,7 @@ function renderTopPrompts() {
         </div>
       </div>
       <div class="prompt-tokens">
-        <div class="cost-value">${fmtCost(p.cost || 0)}</div>
+        <div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--indigo)">${fmt(p.totalTokens)}</div>
         <div class="sub">${fmt(p.inputTokens)} in / ${fmt(cached)} cached / ${fmt(p.outputTokens)} out</div>
       </div>
     </div>`;
@@ -1330,7 +1188,6 @@ function renderSessions() {
     total: (a, b) => a.totalTokens - b.totalTokens,
     input: (a, b) => a.inputTokens - b.inputTokens,
     output: (a, b) => a.outputTokens - b.outputTokens,
-    cost: (a, b) => (a.cost || 0) - (b.cost || 0),
   };
   const fn = sortFns[currentSort.key] || sortFns.total;
   sessions.sort((a, b) => currentSort.dir === 'desc' ? fn(b, a) : fn(a, b));
@@ -1349,7 +1206,6 @@ function renderSessions() {
       <td class="token-num" style="font-weight:700">${fmt(s.totalTokens)}</td>
       <td class="token-num">${fmt(s.inputTokens)}</td>
       <td class="token-num">${fmt(s.outputTokens)}</td>
-      <td class="cost-cell">${fmtCost(s.cost || 0)}</td>
     </tr>
   `).join('');
 }
@@ -1378,7 +1234,7 @@ function openDrilldown(sessionId) {
 
   document.getElementById('drilldownTitle').textContent = session.firstPrompt.substring(0, 140);
   document.getElementById('drilldownMeta').textContent =
-    `${formatDate(session.date)} \u00B7 ${modelShort(session.model)} \u00B7 ${session.queryCount} messages \u00B7 ${fmt(session.totalTokens)} tokens \u00B7 ${fmtCost(session.cost || 0)}`;
+    `${formatDate(session.date)} \u00B7 ${modelShort(session.model)} \u00B7 ${session.queryCount} messages \u00B7 ${fmt(session.totalTokens)} tokens`;
 
   const grouped = [];
   let current = null;
@@ -1407,15 +1263,6 @@ function openDrilldown(sessionId) {
   }
   if (current) grouped.push(current);
 
-  // Render cost curve if 2+ turns
-  const curveContainer = document.getElementById('costCurveContainer');
-  if (grouped.length >= 2) {
-    curveContainer.style.display = 'block';
-    renderCostCurve(grouped);
-  } else {
-    curveContainer.style.display = 'none';
-  }
-
   document.getElementById('queryList').innerHTML = grouped.map((q, i) => {
     const cont = q.continuations > 0 ? ` + ${q.continuations} tool uses` : '';
     const cached = q.cacheReadTokens || 0;
@@ -1423,7 +1270,6 @@ function openDrilldown(sessionId) {
       <div class="query-num">${i + 1}</div>
       <div class="query-prompt">${escapeHtml(q.prompt.substring(0, 500))}</div>
       <div class="query-tokens-col">
-        <div class="cost-tag">${fmtCost(q.cost)}</div>
         <div class="total">${fmt(q.totalTokens)}</div>
         <div class="detail">${fmt(q.inputTokens)} in / ${fmt(cached)} cached / ${fmt(q.outputTokens)} out${cont}</div>
       </div>
@@ -1433,101 +1279,6 @@ function openDrilldown(sessionId) {
   const panel = document.getElementById('drilldown');
   panel.classList.add('open');
   panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// Cost curve chart
-function renderCostCurve(grouped) {
-  const canvas = document.getElementById('costCurveChart');
-  const ctx = canvas.getContext('2d');
-
-  const dpr = window.devicePixelRatio || 1;
-  const w = canvas.parentElement.clientWidth - 40;
-  const h = 140;
-  canvas.width = w * dpr; canvas.height = h * dpr;
-  canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
-  ctx.scale(dpr, dpr);
-  ctx.clearRect(0, 0, w, h);
-
-  const costs = grouped.map(g => g.cost);
-  let cumulative = [];
-  let sum = 0;
-  for (const c of costs) { sum += c; cumulative.push(sum); }
-
-  const maxCost = Math.max(...costs, 0.001);
-  const maxCum = Math.max(...cumulative, 0.001);
-  const chartH = h - 30;
-  const startX = 50;
-  const chartW = w - startX - 10;
-
-  // Grid
-  ctx.font = '500 10px Inter, system-ui';
-  ctx.fillStyle = '#94A3B8';
-  ctx.textAlign = 'right';
-  for (let i = 0; i <= 3; i++) {
-    const val = (maxCost / 3) * i;
-    const y = chartH - (chartH * i / 3) + 4;
-    ctx.fillText(fmtCost(val), startX - 8, y + 3);
-    ctx.strokeStyle = 'rgba(0,0,0,0.04)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(startX, y); ctx.lineTo(w - 10, y); ctx.stroke();
-  }
-
-  const n = costs.length;
-  const stepX = n > 1 ? chartW / (n - 1) : chartW;
-
-  // Cumulative shaded area (scaled to its own max, shown as light indigo fill)
-  ctx.beginPath();
-  ctx.moveTo(startX, chartH + 4);
-  for (let i = 0; i < n; i++) {
-    const x = startX + i * stepX;
-    const y = chartH + 4 - (cumulative[i] / maxCum) * chartH;
-    ctx.lineTo(x, y);
-  }
-  ctx.lineTo(startX + (n - 1) * stepX, chartH + 4);
-  ctx.closePath();
-  ctx.fillStyle = 'rgba(99,102,241,0.08)';
-  ctx.fill();
-
-  // Cumulative line
-  ctx.beginPath();
-  for (let i = 0; i < n; i++) {
-    const x = startX + i * stepX;
-    const y = chartH + 4 - (cumulative[i] / maxCum) * chartH;
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  }
-  ctx.strokeStyle = 'rgba(99,102,241,0.3)';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  // Cost per turn line (rose)
-  ctx.beginPath();
-  for (let i = 0; i < n; i++) {
-    const x = startX + i * stepX;
-    const y = chartH + 4 - (costs[i] / maxCost) * chartH;
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  }
-  ctx.strokeStyle = '#F43F5E';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  // Dots
-  for (let i = 0; i < n; i++) {
-    const x = startX + i * stepX;
-    const y = chartH + 4 - (costs[i] / maxCost) * chartH;
-    ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2);
-    ctx.fillStyle = '#F43F5E'; ctx.fill();
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
-  }
-
-  // X labels
-  ctx.fillStyle = '#94A3B8'; ctx.textAlign = 'center';
-  ctx.font = '500 10px Inter, system-ui';
-  const labelStep = Math.max(1, Math.floor(n / 10));
-  for (let i = 0; i < n; i++) {
-    if (i % labelStep === 0 || i === n - 1) {
-      const x = startX + i * stepX;
-      ctx.fillText(i + 1, x, chartH + 20);
-    }
-  }
 }
 
 function closeDrilldown() {
