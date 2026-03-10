@@ -44,6 +44,100 @@ function getClaudeDir() {
   return path.join(os.homedir(), '.claude');
 }
 
+// Find all possible .claude data directories (Claude Code + Cowork)
+function getAllClaudeDirs() {
+  const dirs = [];
+  const home = os.homedir();
+
+  // 1. Standard Claude Code location
+  const standard = path.join(home, '.claude');
+  if (fs.existsSync(standard)) {
+    dirs.push({ path: standard, source: 'claude-code' });
+  }
+
+  // 2. Cowork / Claude Desktop app containers (macOS)
+  if (process.platform === 'darwin') {
+    const searchPaths = [
+      // Group Containers (common for sandboxed Mac apps)
+      path.join(home, 'Library', 'Group Containers'),
+      // Application Support
+      path.join(home, 'Library', 'Application Support'),
+      // Containers (sandboxed apps)
+      path.join(home, 'Library', 'Containers'),
+    ];
+
+    for (const searchPath of searchPaths) {
+      if (!fs.existsSync(searchPath)) continue;
+      try {
+        const entries = fs.readdirSync(searchPath);
+        for (const entry of entries) {
+          // Look for Anthropic/Claude-related directories
+          if (!/claude|anthropic/i.test(entry)) continue;
+          const candidateBase = path.join(searchPath, entry);
+          // Check common sub-paths where .claude data might live
+          const subPaths = [
+            path.join(candidateBase, '.claude'),
+            path.join(candidateBase, 'Data', '.claude'),
+            path.join(candidateBase, 'data', '.claude'),
+            candidateBase, // might directly contain projects/
+          ];
+          for (const sub of subPaths) {
+            if (fs.existsSync(path.join(sub, 'projects'))) {
+              // Avoid duplicates
+              if (!dirs.some(d => d.path === sub)) {
+                dirs.push({ path: sub, source: 'cowork' });
+              }
+            }
+          }
+        }
+      } catch {
+        // Permission denied or unreadable — skip silently
+      }
+    }
+  }
+
+  // 3. Linux / Cowork VM: check if running inside a Cowork session
+  if (process.env.SESSION_DIR || fs.existsSync('/sessions')) {
+    try {
+      const sessionsRoot = '/sessions';
+      const sessionDirs = fs.readdirSync(sessionsRoot);
+      for (const sd of sessionDirs) {
+        const candidate = path.join(sessionsRoot, sd, 'mnt', '.claude');
+        if (fs.existsSync(path.join(candidate, 'projects'))) {
+          if (!dirs.some(d => d.path === candidate)) {
+            dirs.push({ path: candidate, source: 'cowork' });
+          }
+        }
+      }
+    } catch {
+      // Not in a Cowork VM or no access
+    }
+  }
+
+  // 4. Check for cowork-data/ directory next to this project (exported Cowork data)
+  const coworkDataDir = path.join(__dirname, '..', 'cowork-data');
+  if (fs.existsSync(path.join(coworkDataDir, 'projects'))) {
+    if (!dirs.some(d => d.path === coworkDataDir)) {
+      dirs.push({ path: coworkDataDir, source: 'cowork' });
+    }
+  }
+
+  // 5. CLAUDE_SPEND_DATA env var — point to additional .claude-like directories
+  if (process.env.CLAUDE_SPEND_DATA) {
+    const extraPaths = process.env.CLAUDE_SPEND_DATA.split(path.delimiter);
+    for (const ep of extraPaths) {
+      const resolved = path.resolve(ep);
+      if (fs.existsSync(path.join(resolved, 'projects'))) {
+        if (!dirs.some(d => d.path === resolved)) {
+          dirs.push({ path: resolved, source: 'cowork' });
+        }
+      }
+    }
+  }
+
+  return dirs;
+}
+
 async function parseJSONLFile(filePath) {
   const lines = [];
   const stream = fs.createReadStream(filePath, { encoding: 'utf-8' });
@@ -125,47 +219,77 @@ function extractSessionData(entries) {
 }
 
 async function parseAllSessions() {
-  const claudeDir = getClaudeDir();
-  const projectsDir = path.join(claudeDir, 'projects');
+  const claudeDirs = getAllClaudeDirs();
   const warnings = [];
 
-  if (!fs.existsSync(claudeDir)) {
-    return { sessions: [], dailyUsage: [], modelBreakdown: [], topPrompts: [], totals: {}, warnings: [{ type: 'missing-dir', message: 'Claude Code data directory not found at ' + claudeDir + '. Have you used Claude Code yet?' }] };
+  if (claudeDirs.length === 0) {
+    // Fall back to checking the standard location for a helpful error
+    const claudeDir = getClaudeDir();
+    if (!fs.existsSync(claudeDir)) {
+      return { sessions: [], dailyUsage: [], modelBreakdown: [], topPrompts: [], totals: {}, sources: [], warnings: [{ type: 'missing-dir', message: 'No Claude data directories found. Have you used Claude Code or Cowork yet?' }] };
+    }
+    return { sessions: [], dailyUsage: [], modelBreakdown: [], topPrompts: [], totals: {}, sources: [], warnings: [{ type: 'no-projects', message: 'No project data found. Start a Claude Code or Cowork conversation to generate usage data.' }] };
   }
 
-  if (!fs.existsSync(projectsDir)) {
-    return { sessions: [], dailyUsage: [], modelBreakdown: [], topPrompts: [], totals: {}, warnings: [{ type: 'no-projects', message: 'No project data found. Start a Claude Code conversation to generate usage data.' }] };
-  }
+  // Track which sources we found
+  const sources = claudeDirs.map(d => ({ path: d.path, source: d.source }));
 
-  // Read history.jsonl for prompt display text
-  const historyPath = path.join(claudeDir, 'history.jsonl');
-  const historyEntries = fs.existsSync(historyPath) ? await parseJSONLFile(historyPath) : [];
-
-  // Build a map: sessionId -> first meaningful prompt
+  // Read history.jsonl from all directories for prompt display text
   const sessionFirstPrompt = {};
-  for (const entry of historyEntries) {
-    if (entry.sessionId && entry.display && !sessionFirstPrompt[entry.sessionId]) {
-      const display = entry.display.trim();
-      if (display.startsWith('/') && display.length < 30) continue;
-      sessionFirstPrompt[entry.sessionId] = display;
+  for (const { path: cDir } of claudeDirs) {
+    const historyPath = path.join(cDir, 'history.jsonl');
+    if (!fs.existsSync(historyPath)) continue;
+    const historyEntries = await parseJSONLFile(historyPath);
+    for (const entry of historyEntries) {
+      if (entry.sessionId && entry.display && !sessionFirstPrompt[entry.sessionId]) {
+        const display = entry.display.trim();
+        if (display.startsWith('/') && display.length < 30) continue;
+        sessionFirstPrompt[entry.sessionId] = display;
+      }
     }
   }
 
-  const projectDirs = fs.readdirSync(projectsDir).filter(d => {
+  // Collect all project directories across all sources
+  const allProjectEntries = []; // { dir, source }
+  for (const { path: cDir, source } of claudeDirs) {
+    const projectsDir = path.join(cDir, 'projects');
+    if (!fs.existsSync(projectsDir)) continue;
     try {
-      return fs.statSync(path.join(projectsDir, d)).isDirectory();
+      const projectDirNames = fs.readdirSync(projectsDir).filter(d => {
+        try {
+          return fs.statSync(path.join(projectsDir, d)).isDirectory();
+        } catch {
+          return false;
+        }
+      });
+      for (const d of projectDirNames) {
+        allProjectEntries.push({ dir: path.join(projectsDir, d), name: d, source });
+      }
     } catch {
-      return false;
+      continue;
     }
-  });
+  }
+
+  if (allProjectEntries.length === 0) {
+    return { sessions: [], dailyUsage: [], modelBreakdown: [], topPrompts: [], totals: {}, sources, warnings: [{ type: 'no-projects', message: 'No project data found in any Claude data directory. Start a conversation to generate usage data.' }] };
+  }
+
+  const projectDirs = allProjectEntries.map(e => e.name);
+  // Build a lookup: projectDir name -> source
+  const projectSourceMap = {};
+  for (const e of allProjectEntries) {
+    projectSourceMap[e.name] = e.source;
+  }
 
   const sessions = [];
   const dailyMap = {};
   const modelMap = {};
   const allPrompts = []; // for "most expensive prompts" across all sessions
 
-  for (const projectDir of projectDirs) {
-    const dir = path.join(projectsDir, projectDir);
+  for (const projectEntry of allProjectEntries) {
+    const projectDir = projectEntry.name;
+    const dir = projectEntry.dir;
+    const sessionSource = projectEntry.source;
     let files;
     try {
       files = fs.readdirSync(dir).filter(f => f.endsWith('.jsonl'));
@@ -253,6 +377,7 @@ async function parseAllSessions() {
       sessions.push({
         sessionId,
         project: projectDir,
+        source: sessionSource, // 'claude-code' or 'cowork'
         date,
         timestamp: firstTimestamp,
         firstPrompt: firstPrompt.substring(0, 200),
@@ -432,6 +557,7 @@ async function parseAllSessions() {
     topPrompts,
     totals: grandTotals,
     insights,
+    sources,
     warnings,
   };
 }
