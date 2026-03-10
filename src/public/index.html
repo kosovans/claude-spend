@@ -523,6 +523,23 @@
   .model-sonnet { background: #ECFDF5; color: #047857; }
   .model-haiku { background: #FFF7ED; color: #C2410C; }
   .model-unknown { background: #F1F5F9; color: #475569; }
+  /* Source badges */
+  .source-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 10px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.3px;
+    text-transform: uppercase; margin-left: 6px;
+  }
+  .source-cowork { background: #F3E8FF; color: #7C3AED; }
+  .source-claude-code { background: #DBEAFE; color: #1D4ED8; }
+  .source-filter { display: inline-flex; gap: 6px; margin-left: 12px; }
+  .source-filter button {
+    padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border);
+    background: white; font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .source-filter button.active { background: var(--indigo); color: white; border-color: var(--indigo); }
+  .source-filter button:hover:not(.active) { background: #F8F9FB; }
   .model-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
   .model-opus .model-dot { background: #4F46E5; }
   .model-sonnet .model-dot { background: #10B981; }
@@ -714,8 +731,8 @@
 
   <!-- Value proposition -->
   <div class="hero-section animate delay-1">
-    <h2 class="hero-title">Your Claude Code usage, visualized.</h2>
-    <p class="hero-subtitle">See where your tokens actually go.</p>
+    <h2 class="hero-title">Your Claude usage, visualized.</h2>
+    <p class="hero-subtitle">See where your tokens actually go — Claude Code &amp; Cowork.</p>
   </div>
 
   <!-- How Tokens Work -->
@@ -849,6 +866,11 @@
     </div>
     <div class="sessions-toolbar">
       <input type="text" class="session-search" id="searchInput" placeholder="Search prompts, models, projects...">
+      <div class="source-filter" id="sourceFilter">
+        <button class="active" data-source="all">All</button>
+        <button data-source="claude-code">Claude Code</button>
+        <button data-source="cowork">Cowork</button>
+      </div>
       <span id="sessionCount" class="session-count"></span>
     </div>
     <div class="sessions-card">
@@ -1378,14 +1400,35 @@ function renderTopPrompts() {
 }
 
 // Sessions
+let currentSourceFilter = 'all';
+
+function sourceLabel(source) {
+  if (source === 'cowork') return 'Cowork';
+  if (source === 'claude-code') return 'Code';
+  return source || '';
+}
+
+function sourceBadge(source) {
+  if (!source) return '';
+  const cls = source === 'cowork' ? 'source-cowork' : 'source-claude-code';
+  return `<span class="source-badge ${cls}">${sourceLabel(source)}</span>`;
+}
+
 function renderSessions() {
   let sessions = [...DATA.sessions];
+
+  // Source filter
+  if (currentSourceFilter !== 'all') {
+    sessions = sessions.filter(s => (s.source || 'claude-code') === currentSourceFilter);
+  }
+
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     sessions = sessions.filter(s =>
       s.firstPrompt.toLowerCase().includes(q) ||
       s.model.toLowerCase().includes(q) ||
-      projectShort(s.project).toLowerCase().includes(q)
+      projectShort(s.project).toLowerCase().includes(q) ||
+      (s.source || '').toLowerCase().includes(q)
     );
   }
 
@@ -1403,11 +1446,16 @@ function renderSessions() {
 
   document.getElementById('sessionCount').textContent = `${sessions.length} sessions`;
 
+  // Show/hide source filter based on whether we have mixed sources
+  const hasMixedSources = DATA.sessions.some(s => s.source === 'cowork') && DATA.sessions.some(s => s.source === 'claude-code' || !s.source);
+  document.getElementById('sourceFilter').style.display = hasMixedSources ? 'inline-flex' : 'none';
+
   document.getElementById('sessionsBody').innerHTML = sessions.map(s => `
     <tr onclick="openDrilldown('${s.sessionId}')">
       <td class="date-cell">
         ${formatDate(s.date)}
         <span class="project-tag" title="${escapeHtml(projectShort(s.project))}">${escapeHtml(projectShort(s.project))}</span>
+        ${sourceBadge(s.source)}
       </td>
       <td><div class="prompt-preview" title="${escapeHtml(s.firstPrompt)}">${escapeHtml(s.firstPrompt)}</div></td>
       <td><span class="model-badge ${modelClass(s.model)}"><span class="model-dot"></span>${modelShort(s.model)}</span></td>
@@ -1434,6 +1482,16 @@ document.querySelectorAll('.sessions-table th[data-sort]').forEach(th => {
 document.getElementById('searchInput').addEventListener('input', e => {
   searchQuery = e.target.value;
   renderSessions();
+});
+
+// Source filter buttons
+document.querySelectorAll('#sourceFilter button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#sourceFilter button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentSourceFilter = btn.dataset.source;
+    renderSessions();
+  });
 });
 
 // Group session queries by user prompt (shared logic)
