@@ -281,7 +281,7 @@ async function parseAllSessions() {
     projectSourceMap[e.name] = e.source;
   }
 
-  const sessions = [];
+  let sessions = [];
   const dailyMap = {};
   const modelMap = {};
   const allPrompts = []; // for "most expensive prompts" across all sessions
@@ -423,6 +423,17 @@ async function parseAllSessions() {
       }
     }
   }
+
+  // Deduplicate sessions with the same sessionId (e.g., read from both VM and cowork-data)
+  // Keep the one with the most data (largest file / most tokens)
+  const seenSessions = new Map();
+  for (const s of sessions) {
+    const existing = seenSessions.get(s.sessionId);
+    if (!existing || s.totalTokens > existing.totalTokens) {
+      seenSessions.set(s.sessionId, s);
+    }
+  }
+  sessions = Array.from(seenSessions.values());
 
   sessions.sort((a, b) => b.totalTokens - a.totalTokens);
 
