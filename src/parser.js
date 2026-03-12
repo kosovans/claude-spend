@@ -557,6 +557,26 @@ async function parseAllSessions() {
     grandTotals.avgTokensPerSession = Math.round(grandTotals.totalTokens / grandTotals.totalSessions);
   }
 
+  // Tool breakdown: aggregate token costs per tool across all sessions
+  const toolMap = {};
+  for (const session of sessions) {
+    for (const q of session.queries) {
+      const toolsInTurn = q.tools && q.tools.length > 0 ? q.tools : ['(no tool — text only)'];
+      const n = toolsInTurn.length;
+      for (const t of toolsInTurn) {
+        if (!toolMap[t]) toolMap[t] = { tool: t, calls: 0, inputTokens: 0, outputTokens: 0, cacheCreationTokens: 0, cacheReadTokens: 0, totalTokens: 0, cost: 0 };
+        toolMap[t].calls += 1;
+        toolMap[t].inputTokens += Math.round(q.inputTokens / n);
+        toolMap[t].outputTokens += Math.round(q.outputTokens / n);
+        toolMap[t].cacheCreationTokens += Math.round(q.cacheCreationTokens / n);
+        toolMap[t].cacheReadTokens += Math.round(q.cacheReadTokens / n);
+        toolMap[t].totalTokens += Math.round(q.totalTokens / n);
+        toolMap[t].cost += q.cost / n;
+      }
+    }
+  }
+  const toolBreakdown = Object.values(toolMap).sort((a, b) => b.totalTokens - a.totalTokens);
+
   // Generate insights
   const insights = generateInsights(sessions, allPrompts, grandTotals);
 
@@ -565,6 +585,7 @@ async function parseAllSessions() {
     dailyUsage,
     modelBreakdown: Object.values(modelMap),
     projectBreakdown,
+    toolBreakdown,
     topPrompts,
     totals: grandTotals,
     insights,

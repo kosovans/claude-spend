@@ -835,6 +835,32 @@
     <div class="prompts-card" id="topPromptsList"></div>
   </div>
 
+  <!-- Tool Breakdown -->
+  <div class="tools-section animate delay-4" id="toolsSection" style="display:none; margin-bottom:32px">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(135deg,#FEE2E2,#FECACA)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      </div>
+      <div class="section-title has-tooltip has-tooltip-below" style="display:inline-flex">Token Usage by Tool<div class="tooltip">Which tools and skills burn the most tokens. Each assistant turn's tokens are split evenly across the tools called in that turn. Cache read tokens (context re-sent each turn) dominate the cost.</div></div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="sessions-table" id="toolsTable" style="width:100%">
+        <thead>
+          <tr>
+            <th style="text-align:left">Tool</th>
+            <th style="text-align:right">Calls</th>
+            <th style="text-align:right">Total Tokens</th>
+            <th style="text-align:right">Output</th>
+            <th style="text-align:right">Cache Read</th>
+            <th style="text-align:right">Est. Cost</th>
+            <th style="text-align:right;min-width:120px">Share</th>
+          </tr>
+        </thead>
+        <tbody id="toolsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- Drill-down -->
   <div id="drilldown" class="drilldown">
     <div class="drilldown-header">
@@ -982,11 +1008,15 @@ function formatDate(d) {
 
 async function fetchData() {
   try {
-    const res = await fetch('/api/data');
-    const json = await res.json();
-    if (!res.ok || json.error) {
-      showError(json.error || `Server returned ${res.status}`);
-      return;
+    // Use server-injected data if available (avoids proxy caching issues)
+    let json = window.__PRELOADED_DATA__ || null;
+    if (!json) {
+      const res = await fetch('/api/data');
+      json = await res.json();
+      if (!res.ok || json.error) {
+        showError(json.error || `Server returned ${res.status}`);
+        return;
+      }
     }
     if (!json.totals || !json.sessions) {
       showError('No session data found. Make sure you have used Claude Code at least once.');
@@ -1046,6 +1076,7 @@ function render() {
   renderDailyChart();
   renderModelChart();
   // renderProjectBreakdown(); // temporarily disabled
+  renderToolBreakdown();
   renderTopPrompts();
   renderSessions();
 }
@@ -1217,6 +1248,53 @@ function roundedRect(ctx, x, y, w, h, r) {
   ctx.lineTo(x, y + r);
   ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
+}
+
+// Tool breakdown table
+function renderToolBreakdown() {
+  const tools = DATA.toolBreakdown;
+  if (!tools || !tools.length) { document.getElementById('toolsSection').style.display = 'none'; return; }
+  document.getElementById('toolsSection').style.display = '';
+  const total = tools.reduce((s, t) => s + t.totalTokens, 0);
+  const tbody = document.getElementById('toolsBody');
+
+  // Simplify MCP tool names: mcp__uuid__toolName → toolName
+  function shortTool(name) {
+    const m = name.match(/^mcp__[^_]+__(.+)$/);
+    if (m) return m[1];
+    // mcp__Name__tool → Name/tool
+    const m2 = name.match(/^mcp__(.+?)__(.+)$/);
+    if (m2) return m2[1] + '/' + m2[2];
+    return name;
+  }
+
+  // Group by simplified name prefix for coloring
+  function toolColor(name) {
+    if (name.includes('Chrome') || name.includes('computer') || name.includes('navigate') || name.includes('tab')) return '#7C3AED';
+    if (name.includes('Desktop_Commander') || name.includes('start_process') || name.includes('read_process')) return '#0891B2';
+    if (name.includes('scheduled')) return '#D97706';
+    if (name === 'Bash') return '#059669';
+    if (name === 'Read') return '#2563EB';
+    if (name === 'Edit' || name === 'Write') return '#DC2626';
+    if (name === 'TodoWrite') return '#8B5CF6';
+    if (name === 'Skill') return '#EC4899';
+    return '#64748B';
+  }
+
+  tbody.innerHTML = tools.slice(0, 25).map(t => {
+    const pct = total > 0 ? (t.totalTokens / total * 100) : 0;
+    const short = shortTool(t.tool);
+    const color = toolColor(t.tool);
+    return '<tr>' +
+      '<td style="text-align:left"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + color + ';margin-right:8px"></span><span title="' + escapeHtml(t.tool) + '">' + escapeHtml(short) + '</span></td>' +
+      '<td style="text-align:right">' + t.calls + '</td>' +
+      '<td style="text-align:right;font-weight:600">' + fmt(t.totalTokens) + '</td>' +
+      '<td style="text-align:right;color:var(--text-tertiary)">' + fmt(t.outputTokens) + '</td>' +
+      '<td style="text-align:right;color:var(--text-tertiary)">' + fmt(t.cacheReadTokens) + '</td>' +
+      '<td style="text-align:right">$' + t.cost.toFixed(2) + '</td>' +
+      '<td style="text-align:right"><div style="display:flex;align-items:center;gap:8px;justify-content:flex-end"><div style="width:80px;height:6px;border-radius:3px;background:var(--bg-secondary);overflow:hidden"><div style="width:' + pct.toFixed(1) + '%;height:100%;border-radius:3px;background:' + color + '"></div></div><span style="font-size:12px;min-width:36px">' + pct.toFixed(1) + '%</span></div></td>' +
+    '</tr>';
+  }).join('');
 }
 
 // Model donut
@@ -1702,7 +1780,7 @@ function renderDrilldownInsight(grouped, session) {
   } else if (costs.length >= 3) {
     // Normal/healthy
     const totalTokens = session.totalTokens;
-    const cacheRate = session.queries ? Math.round(session.queries.reduce((s, q) => s + (q.cacheReadTokens || 0), 0) / Math.max(1, totalTokens) * 100) : 0;
+    const cacheRate = session.cacheReadTokens ? Math.round(session.cacheReadTokens / Math.max(1, totalTokens) * 100) : 0;
     title = `\u2705 This conversation was efficient`;
     body = `${costs.length} turns, avg ~$${avgCost.toFixed(4)}/turn, total ~$${totalCost.toFixed(2)} API-equivalent. ${cacheRate > 50 ? `Cache hit rate: ${cacheRate}% (good).` : cacheRate > 0 ? `Cache hit rate: ${cacheRate}%.` : ''} No issues detected.`;
     bg = 'linear-gradient(135deg,rgba(16,185,129,0.06),rgba(16,185,129,0.02))';
@@ -1722,13 +1800,25 @@ function renderDrilldownInsight(grouped, session) {
 }
 
 // Drill-down
-function openDrilldown(sessionId) {
+async function openDrilldown(sessionId) {
   const session = DATA.sessions.find(s => s.sessionId === sessionId);
   if (!session) return;
 
   document.getElementById('drilldownTitle').textContent = session.firstPrompt.substring(0, 140);
   document.getElementById('drilldownMeta').textContent =
     `${formatDate(session.date)} \u00B7 ${modelShort(session.model)} \u00B7 ${session.queryCount} messages \u00B7 ${fmt(session.totalTokens)} tokens`;
+
+  // Lazy-load full session data (queries) if not already loaded
+  if (!session.queries) {
+    try {
+      const res = await fetch('/api/session/' + encodeURIComponent(sessionId));
+      const full = await res.json();
+      session.queries = full.queries;
+    } catch (e) {
+      document.getElementById('queryList').innerHTML = '<div style="padding:16px;color:#DC2626">Failed to load session details.</div>';
+      return;
+    }
+  }
 
   const grouped = groupSessionQueries(session.queries);
 
