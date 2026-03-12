@@ -910,6 +910,7 @@
             <th data-sort="total" style="text-align:right" class="sorted has-tooltip has-tooltip-below">Total tokens<div class="tooltip">The total number of tokens used in this conversation. Higher means more expensive. Long conversations cost more because Claude re-reads everything each turn.</div></th>
             <th data-sort="input" style="text-align:right" class="has-tooltip has-tooltip-below">Read<div class="tooltip">Tokens Claude read: your messages, the conversation history, files, and system context. This grows with each message because the full history gets re-sent.</div></th>
             <th data-sort="output" style="text-align:right" class="has-tooltip has-tooltip-below">Written<div class="tooltip">Tokens Claude wrote back: responses, code, explanations. Usually a small fraction of the total.</div></th>
+            <th data-sort="cost" style="text-align:right" class="has-tooltip has-tooltip-below">Est. Cost<div class="tooltip">Estimated API-equivalent cost based on Anthropic's published token pricing. Actual subscription cost may differ.</div></th>
           </tr>
         </thead>
         <tbody id="sessionsBody"></tbody>
@@ -950,6 +951,13 @@ function fmt(n) {
 function fmtFull(n) {
   if (n == null || isNaN(n)) return '0';
   return n.toLocaleString();
+}
+
+function fmtCost(n) {
+  if (n == null || isNaN(n) || n === 0) return '$0.00';
+  if (n >= 100) return '$' + Math.round(n).toLocaleString();
+  if (n >= 1) return '$' + n.toFixed(2);
+  return '$' + n.toFixed(3);
 }
 
 function modelClass(m) {
@@ -1096,6 +1104,8 @@ function renderStats() {
       tip: 'Each time you start Claude Code and begin chatting, that counts as one conversation. A new conversation starts fresh with no prior context.' },
     { label: 'Messages Sent', value: fmtFull(t.totalQueries), sub: `Each message used ~${fmt(avgTokensPerMsg)} tokens on average`,
       tip: 'Every time you hit Enter and send something to Claude, that is one message. This includes follow-up tool calls Claude makes automatically behind the scenes.' },
+    { label: 'Est. API Cost', value: fmtCost(t.totalCost), sub: `What this usage would cost at Anthropic's published API rates`,
+      tip: 'Estimated cost if you were paying per-token at Anthropic\'s published API pricing. Your actual Claude Code / Cowork subscription cost may differ. Useful for understanding the value of your usage.' },
     { label: 'Cache Hit Rate', value: `${((t.cacheHitRate || 0) * 100).toFixed(0)}%`, sub: `${fmt(t.totalCacheReadTokens || 0)} tokens served from cache`,
       tip: 'The percentage of input tokens that were served from cache instead of being processed fresh. Higher is better -- cached tokens are 10x cheaper and help you stay under rate limits.' },
   ];
@@ -1291,7 +1301,7 @@ function renderToolBreakdown() {
       '<td style="text-align:right;font-weight:600">' + fmt(t.totalTokens) + '</td>' +
       '<td style="text-align:right;color:var(--text-tertiary)">' + fmt(t.outputTokens) + '</td>' +
       '<td style="text-align:right;color:var(--text-tertiary)">' + fmt(t.cacheReadTokens) + '</td>' +
-      '<td style="text-align:right">$' + t.cost.toFixed(2) + '</td>' +
+      '<td style="text-align:right">' + fmtCost(t.cost) + '</td>' +
       '<td style="text-align:right"><div style="display:flex;align-items:center;gap:8px;justify-content:flex-end"><div style="width:80px;height:6px;border-radius:3px;background:var(--bg-secondary);overflow:hidden"><div style="width:' + pct.toFixed(1) + '%;height:100%;border-radius:3px;background:' + color + '"></div></div><span style="font-size:12px;min-width:36px">' + pct.toFixed(1) + '%</span></div></td>' +
     '</tr>';
   }).join('');
@@ -1471,7 +1481,7 @@ function renderTopPrompts() {
       </div>
       <div class="prompt-tokens">
         <div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--indigo)">${fmt(p.totalTokens)}</div>
-        <div class="sub">${fmt(p.inputTokens)} in / ${fmt(cached)} cached / ${fmt(p.outputTokens)} out</div>
+        <div class="sub">${fmtCost(p.cost)} · ${fmt(p.inputTokens)} in / ${fmt(cached)} cached / ${fmt(p.outputTokens)} out</div>
       </div>
     </div>`;
   }).join('');
@@ -1518,6 +1528,7 @@ function renderSessions() {
     total: (a, b) => a.totalTokens - b.totalTokens,
     input: (a, b) => a.inputTokens - b.inputTokens,
     output: (a, b) => a.outputTokens - b.outputTokens,
+    cost: (a, b) => (a.cost || 0) - (b.cost || 0),
   };
   const fn = sortFns[currentSort.key] || sortFns.total;
   sessions.sort((a, b) => currentSort.dir === 'desc' ? fn(b, a) : fn(a, b));
@@ -1541,6 +1552,7 @@ function renderSessions() {
       <td class="token-num" style="font-weight:700">${fmt(s.totalTokens)}</td>
       <td class="token-num">${fmt(s.inputTokens)}</td>
       <td class="token-num">${fmt(s.outputTokens)}</td>
+      <td class="token-num">${fmtCost(s.cost)}</td>
     </tr>
   `).join('');
 }
