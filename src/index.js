@@ -34,8 +34,8 @@ if (isNaN(port)) {
 
 const app = createServer();
 
-const server = app.listen(port, async () => {
-  const url = `http://localhost:${port}`;
+const server = app.listen(port, '127.0.0.1', async () => {
+  const url = `http://127.0.0.1:${port}`;
   console.log(`\n  claude-spend dashboard running at ${url}\n`);
 
   if (!noOpen) {
