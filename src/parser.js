@@ -285,6 +285,7 @@ async function parseAllSessions() {
   const dailyMap = {};
   const modelMap = {};
   const allPrompts = []; // for "most expensive prompts" across all sessions
+  const seenSessionIds = new Set(); // deduplicate sessions across data sources
 
   for (const projectEntry of allProjectEntries) {
     const projectDir = projectEntry.name;
@@ -300,6 +301,10 @@ async function parseAllSessions() {
     for (const file of files) {
       const filePath = path.join(dir, file);
       const sessionId = path.basename(file, '.jsonl');
+
+      // Skip duplicate sessions already seen from another data source
+      if (seenSessionIds.has(sessionId)) continue;
+      seenSessionIds.add(sessionId);
 
       let entries;
       try {
